@@ -3,7 +3,7 @@ RM          = rm -rf
 srcdir      = .
 VPATH       = $(srcdir)
 
-ALL_CFLAGS  = $(ARCH_CFLAGS) $(CFLAGS)
+ALL_CFLAGS  = $(ARCH_CFLAGS)  $(CFLAGS)
 ALL_LDFLAGS = $(ARCH_LDFLAGS) $(LDFLAGS)
 ALL_ASFLAGS = $(ARCH_ASFLAGS) $(ASFLAGS)
 ALL_MDFLAGS = $(ARCH_MDFLAGS) $(MDFLAGS)
@@ -41,4 +41,4 @@ easyc_cortex:
 
 
 include $(PROG)/Makefile
-include $(ARCH)/Makefile
+include $(ARCH)/build.mk
