@@ -1,6 +1,6 @@
 RM          = rm -rf
 
-srcdir      = .
+srcdir      = $(HAX_ROOT) .
 VPATH       = $(srcdir)
 
 ALL_CFLAGS  = $(ARCH_CFLAGS)  $(CFLAGS)
@@ -8,8 +8,11 @@ ALL_LDFLAGS = $(ARCH_LDFLAGS) $(LDFLAGS)
 ALL_ASFLAGS = $(ARCH_ASFLAGS) $(ASFLAGS)
 ALL_MDFLAGS = $(ARCH_MDFLAGS) $(MDFLAGS)
 
-HAX_SRC     = hax_main.c hax_serial.c
-HAX_INC     = hax.h
+HAX_SRC = hax_main.c hax_serial.c
+HAX_INC = hax.h
+
+ALL_SRC = $(HAX_SRC) $(ARCH_SRC) $(SOURCE)
+ALL_INC = $(HAX_INC) $(ARCH_INC) $(HEADERS)
 
 ifeq ($(ARCH),vex_pic)
 	TARGET  = $(PROG)-$(ARCH).hex
@@ -24,12 +27,6 @@ endif
 
 all: $(TARGET)
 
-help:
-	@echo "Valid targets:"
-	@echo "  vex_pic"
-	@echo "  vex_cortex"
-	@echo "  easyc_cortex"
-
 vex_pic:
 	@$(MAKE) ARCH="vex_pic" $(MAKEFLAGS) all
 
@@ -39,6 +36,4 @@ vex_cortex:
 easyc_cortex:
 	@$(MAKE) ARCH="easyc_cortex" $(MAKEFLAGS) all
 
-
-include $(PROG)/Makefile
 include $(ARCH)/build.mk

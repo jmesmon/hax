@@ -33,8 +33,8 @@ ARCH_LDFLAGS=$(ALL_CFLAGS)                            \
             -fwhole-program -Wl,-static               \
             $(LD_INC) -T $(LD_SCRIPT)
 
-OBJECTS       = $(SOURCE:=.o)
-TRASH        += $(TARGET) $(OBJECTS) $(OBJECTS:.o.=.d)
+OBJECTS  = $(ALL_SRC:=.o)
+TRASH   += $(TARGET) $(OBJECTS) $(OBJECTS:.o.=.d)
 
 
 clean :
@@ -48,11 +48,11 @@ rebuild : clean all
 
 .SECONDARY : 
 
-%.s.o: %.s $(HEADER)
+%.s.o: %.s $(ALL_INC)
 	@$(AS) $(ALL_ASFLAGS) -c -o $@ $<
 	@echo "AS $<"
 
-%.c.o: %.c $(HEADER)
+%.c.o: %.c $(ALL_INC)
 	@$(CC) $(ALL_CFLAGS) -c -o $@ $<
 	@echo "CC $<"
 
