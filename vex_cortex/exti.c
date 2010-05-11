@@ -16,18 +16,18 @@ static const uint8_t pin_to_ifipin [16] =
 	{ 10, 11, 255, 255, 255, 255, 2,   3,
 	   6,  0,   7,   1,   8,   4, 5, 255};
 
-static InterruptServiceRoutine isr_callback[12];
+static isr_t isr_callback[12];
 
 #define __isr __attribute__((interrupt))
 
 #define CALL_ISR(_i_)                                          \
-	if (EXTI->PR & (1<<_i_)) {                             \
-		EXTI->PR = (1<<_i_);                           \
-		uint8_t ri = pin_to_ifipin[_i_];	       \
-		if (isr_callback[ri]) {                        \
-			isr_callback[ri]( interrupt_get(ri) ); \
-		}                                              \
-	}
+        if (EXTI->PR & (1<<_i_)) {                             \
+                EXTI->PR = (1<<_i_);                           \
+                uint8_t ri = pin_to_ifipin[_i_];	       \
+                if (isr_callback[ri]) {                        \
+                        isr_callback[ri]( interrupt_get(ri) ); \
+                }                                              \
+        }
 
 __isr void EXTI0_IRQHandler(void) {
 	CALL_ISR(0);
@@ -54,23 +54,23 @@ __isr void EXTI15_10_IRQHandler(void) {
 	CALL_ISR(15);
 }
 
-	/* PE9, PE11,  PC6,  PC7, PE13, PE14,  PE8, PE10, PE12,  PE7,  PD0,  PD1*/
-static GPIO_TypeDef *const ifipin_to_port[12] = 
-	{GPIOE,GPIOE,GPIOC,GPIOC,GPIOE,GPIOE,GPIOE,GPIOE,GPIOE,GPIOE,GPIOD,GPIOD};
-	
-// Maps ifi labels to interrupt/pin indexes
-static const int8_t ifipin_to_pin[12] =
-	{    9,   11,    6,    7,   13,   14,    8,   10,   12,    7,    0,    1};
 
-bool digital_get(PinIx index) {
-	GPIO_TypeDef *port = ifipin_to_port[index];
-	uint8_t pin = ifipin_to_pin[index];
+    /* PE9, PE11,  PC6,  PC7, PE13, PE14,  PE8, PE10, PE12,  PE7,  PD0,  PD1*/
+static GPIO_TypeDef *const ifipin_to_port[12] = 
+    {GPIOE,GPIOE,GPIOC,GPIOC,GPIOE,GPIOE,GPIOE,GPIOE,GPIOE,GPIOE,GPIOD,GPIOD};
+
+static const int8_t ifipin_to_pin[12] =
+    {    9,   11,    6,    7,   13,   14,    8,   10,   12,    7,    0,    1};
+
+bool digital_get(index_t ifi_index) {
+	GPIO_TypeDef *port = ifipin_to_port[ifi_index];
+	uint8_t pin = ifipin_to_pin[ifi_index];
 
 	return (port->IDR & ( 1 << pin )) >> pin;
 }
 
-void digital_set(PinIx index, bool value) {
-	if (value) {
+void digital_set(index_t index, bool pull_high) {
+	if (pull_high) {
 		ifipin_to_port[index]->BSRR = 1 << ifipin_to_pin[index];
 	} else {
 		ifipin_to_port[index]->BRR  = 1 << ifipin_to_pin[index];
@@ -78,40 +78,39 @@ void digital_set(PinIx index, bool value) {
 }
 
 
-void pin_set_io(PinIx pin_index, PinMode pin_mode) {	
+void pin_set_io(index_t ifi_index, bool set_output ) {	
 	GPIO_InitTypeDef GPIO_param;
 
-	if (pin_index >= 12) {
+	if (ifi_index >= 12) {
 		return;
 	}
 	
 	GPIO_param.GPIO_Pin =
-		(uint16_t)(1 << ifipin_to_pin[pin_index]);
+		(uint16_t)(1 << ifipin_to_pin[ifi_index]);
 	
-	if (pin_mode == kInput) {
+	if (!set_output) {
 		GPIO_param.GPIO_Mode = GPIO_Mode_IPU;
-	} else if (pin_mode == kOutput) {
+	} else {
 		GPIO_param.GPIO_Speed = GPIO_Speed_50MHz;
 		GPIO_param.GPIO_Mode = GPIO_Mode_Out_PP;
 	}
 	
-	GPIO_Init((GPIO_TypeDef *)ifipin_to_port[pin_index],
-		&GPIO_param);	
+	GPIO_Init((GPIO_TypeDef *)ifipin_to_port[ifi_index],
+		&GPIO_param);
 }
 
-void interrupt_reg_isr(InterruptIx index,
-	InterruptServiceRoutine isr) {
-	isr_callback[index] = isr;
+void interrupt_reg_isr(index_t ifi_index, isr_t isr) {
+	isr_callback[ifi_index] = isr;
 }
 
-bool interrupt_get(InterruptIx index) {
-	return digital_get(index);
+bool interrupt_get(index_t ifi_index) {
+	return digital_get(ifi_index);
 }
 
-void interrupt_enable(InterruptIx index) {
-	uint8_t ri = ifipin_to_pin[index];
+void interrupt_enable(index_t ifi_index) {
+	uint8_t ri = ifipin_to_pin[ifi_index];
 
-	pin_set_io(index,kInput);
+	pin_set_io(ifi_index, false);
 	
 	// unmask the interrupt.
 	EXTI->IMR |= (1 << ri);
@@ -124,8 +123,8 @@ void interrupt_enable(InterruptIx index) {
 	EXTI->FTSR |= (1 << ri);
 }
 
-void interrupt_disable(InterruptIx index) {
-	EXTI->IMR &= ~(1 << ifipin_to_pin[index]);
+void interrupt_disable(index_t ifi_index) {
+	EXTI->IMR &= ~(1 << ifipin_to_pin[ifi_index]);
 }
 
 
