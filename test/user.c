@@ -33,7 +33,7 @@ void auton_loop(void) {
 	static bool done = false;
 
 	if (!done) {
-		/* Motor speeds range from -127 (full power, reverse) to +227 (full
+		/* Motor speeds range from -127 (full power, reverse) to +127 (full
 		 * power, forward).
 		 */
 		motor_set(MTR_LEFT,   127);

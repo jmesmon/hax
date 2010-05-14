@@ -68,7 +68,7 @@ enum {
 };
 
 #else
-#error Unsupported architecture
+#error "Unsupported architecture"
 #endif
 
 enum {
