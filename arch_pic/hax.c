@@ -407,8 +407,12 @@ void interrupt_handler(void) {
 	}
 }
 
-#pragma code interrupt_vector=0x818
-void interrupt_vector(void) {
+#if defined(MCC18)
+#pragma code interrupt_vector_low=0x818
+#elif defined(SDCC)
+#pragma code interrupt_vector_low 0x818
+#endif
+void interrupt_vector_low(void) {
 	/* There's not much space for this function... */
 	_asm
 	goto interrupt_handler

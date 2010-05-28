@@ -55,10 +55,12 @@ _asm GOTO InterruptHandlerHigh _endasm
 #pragma code
 
 #define V240
-#ifndef V240
+#if defined(MCC18_30)
 #pragma interrupt InterruptHandlerHigh nosave=TBLPTR, TABLAT, PCLATH, PROD, section(".tmpdata"), section("MATH_DATA")
-#else
+#elif defined(MCC18_24)
 #pragma interrupt InterruptHandlerHigh
+#else
+#error "Bad Compiler."
 #endif
 void InterruptHandlerHigh(void)
 {
