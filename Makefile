@@ -11,34 +11,24 @@ ALL_MDFLAGS = $(ARCH_MDFLAGS) $(MDFLAGS)
 HAX_SRC     = hax_main.c
 HAX_INC     = hax.h
 
-ifeq ($(ARCH),vex_pic)
-	TARGET  = $(PROG)-$(ARCH).hex
-endif
-
-ifeq ($(ARCH),vex_cortex)
-	TARGET  = $(PROG)-$(ARCH).bin
-endif
-
-.PHONY: all help vex_pic vex_cortex easyc_cortex clean
-
-
-all: $(TARGET)
-
-help:
-	@echo "Valid targets:"
-	@echo "  vex_pic"
-	@echo "  vex_cortex"
-	@echo "  easyc_cortex"
-
-vex_pic:
-	@$(MAKE) ARCH="vex_pic" $(MAKEFLAGS) all
-
-vex_cortex:
-	@$(MAKE) ARCH="vex_cortex" $(MAKEFLAGS) all
-
-easyc_cortex:
-	@$(MAKE) ARCH="easyc_cortex" $(MAKEFLAGS) all
-
+.PHONY: all help arch_pic arch_cortex clean build rebuild
+all: build
+rebuild : | clean build
 
 include $(PROG)/Makefile
 include $(ARCH)/build.mk
+TARGET  = $(PROG)-$(ARCH).$(ARCH_EXT)
+
+build: $(TARGET)
+
+help:
+	@echo "Valid targets:"
+	@echo "  arch_pic"
+	@echo "  arch_cortex"
+
+vex_pic:
+	@$(MAKE) ARCH="arch_pic" $(MAKEFLAGS) all
+
+vex_cortex:
+	@$(MAKE) ARCH="arch_cortex" $(MAKEFLAGS) all
+

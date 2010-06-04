@@ -5,6 +5,11 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#if !defined(bool)
+#define bool uint8_t
+#endif
+
+
 /* Define an empty error handler for the user to override. */
 #ifndef ERROR_HANDLER
 #define ERROR_HANDLER(_file_, _line_)

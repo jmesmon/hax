@@ -3,11 +3,11 @@
  * PIC Arch
  */
 #include <adc.h>
-#include <delays.h>
 #include <hax.h>
 
 #if defined(MCC18)
 #include <p18cxxx.h>
+#include <delays.h>
 #elif defined(SDCC)
 #include <pic18fregs.h>
 #else
@@ -119,8 +119,8 @@ uint8_t battery_get(void) {
 		while(!LVDCONbits.IRVST);
 		PIR2bits.LVDIF = 0;
 	
-		tmp = LVDCON & 0xF
-		if ( !PIR2bits.LVDIF || !tmp ) {
+		tmp = LVDCON & 0xF;
+		if (!(PIR2bits.LVDIF)||!tmp) {
 			LVDCON = 0;
 			return tmp + 1;
 		}
@@ -426,13 +426,15 @@ void interrupt_handler(void) {
 }
 
 #if defined(SDCC)
-  void interrupt_vector(void) __naked __interrupt 2
+void interrupt_vector(void) __naked __interrupt 2
+{
+	__asm
+		goto _interrupt_handler
+	__endasm;
+}
 #elif defined(MCC18)
-  #pragma code interrupt_vector=0x818
-  void interrupt_vector(void)
-#else 
-  #error "Bad Compiler."
-#endif
+#pragma code interrupt_vector=0x818
+void interrupt_vector(void)
 {
 	/* There's not much space for this function... */
 	_asm
@@ -440,6 +442,10 @@ void interrupt_handler(void) {
 	_endasm
 }
 #pragma code
+#else
+#error "Bad Compiler."
+#endif
+
 
 /* TODO Implement interrupt_disable(). */
 
@@ -482,10 +488,10 @@ void interrupt_enable(index_t index) {
 /*
  * STREAM IO
  */
-void _putc(char data) {
+void _putc(char c) {
 	/* From the Microchip C Library Docs */
 	while(Busy1USART());
-	Write1USART(data);
+	Write1USART(c);
 }
  
 /* IFI lib uses this. (IT BURNNNNSSSS) */
