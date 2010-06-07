@@ -21,23 +21,18 @@ ARCH_CFLAGS  = -I=$(WICPATH) -I=$(WIPATH) -I=$(srcdir) -I=$(WIAPATH)   \
 ARCH_ASFLAGS = /p18f8520
 ARCH_LDFLAGS = $(ARCH)/18f8520user.lkr /l $(WLIBPATH) /a INHX32
 
-OBJECTS      = $(ALL_SRC:=.o)
+OBJECTS      = $(SOURCE:=.o)
 TRASH       += $(TARGET:.hex=.cod) \
                $(TARGET:.hex=.lst) \
                $(OBJECTS:.o=.err)  \
                $(OBJECTS:.o=.d)
 
-.SUFFIXES:
-.SECONDARY:
-
-all : $(TARGET)
-
-rebuild : clean all
-
+.PHONY : clean
 clean :
 	@echo "CLEAN"
 	@$(RM) $(OBJECTS) $(TARGET) $(TRASH)
 
+.SECONDARY:
 $(TARGET) : $(OBJECTS)
 	@echo "LD $(@F)"
 	@$(LD) $(ALL_LDFLAGS) $^ /o$@
@@ -52,4 +47,3 @@ $(TARGET) : $(OBJECTS)
 	@echo "AS $(@F)"
 	@$(AS) /q $(ALL_ASFLAGS) $< /o$@
 
-.PHONY : all clean install rebuild
