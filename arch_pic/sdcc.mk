@@ -14,6 +14,7 @@ ARCH_CFLAGS += --optimize-df
 #ARCH_CFLAGS += --pstack-model=large
 
 ARCH_ASFLAGS = -p18f8520
+ARCH_LDFLAGS = 
 
 OBJECTS     += $(SOURCE:=.o)
 #TRASH       += 
