@@ -26,9 +26,9 @@ help:
 	@echo "  arch_pic"
 	@echo "  arch_cortex"
 
-vex_pic:
+arch_pic:
 	@$(MAKE) ARCH="arch_pic" $(MAKEFLAGS) all
 
-vex_cortex:
+arch_cortex:
 	@$(MAKE) ARCH="arch_cortex" $(MAKEFLAGS) all
 
