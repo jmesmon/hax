@@ -33,11 +33,11 @@ clean :
 	@$(RM) $(OBJECTS) $(TARGET) $(TRASH)
 
 .SECONDARY:
-$(TARGET) : $(OBJECTS)
+%.hex : $(OBJECTS)
 	@echo "LD $(@F)"
 	@$(LD) $(ALL_LDFLAGS) $^ /o$@
 
--include $(OBJECTS:.o=.d)
+#-include $(OBJECTS:.o=.d)
 
 %.c.o : %.c
 	@echo "CC $(@F)"
