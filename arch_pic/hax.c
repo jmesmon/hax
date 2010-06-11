@@ -4,6 +4,8 @@
  */
 #include <adc.h>
 #include <hax.h>
+#include <stdio.h>
+#include <usart.h>
 
 #if defined(MCC18)
 #include <p18cxxx.h>
@@ -12,12 +14,10 @@
 #elif defined(SDCC)
 #include <pic18fregs.h>
 #include <delay.h>
+#include "usart_sdcc.h"
 #else
 #error "Bad compiler"
 #endif
-
-#include <stdio.h>
-#include <usart.h>
 
 #include "master.h"
 #include "ifi_lib.h"
@@ -62,7 +62,7 @@ void setup_1(void) {
 	/* Initialize serial port communication. */
 	statusflag.b.NEW_SPI_DATA = 0;
 
-	Open1USART(USART_TX_INT_OFF
+	usart1_open(USART_TX_INT_OFF
 	         & USART_RX_INT_OFF
 	         & USART_ASYNCH_MODE
 	         & USART_EIGHT_BIT
@@ -99,7 +99,11 @@ void setup_1(void) {
 		                       ADC_CH0 & ADC_INT_OFF & ADC_VREFPLUS_VDD &
 		       		           ADC_VREFMINUS_VSS );
 		#elif defined(SDCC)
-		adc_open( ADC_CHN_0, ADC_FOSC_64, pcfg, config);
+		adc_open(
+			ADC_CHN_0,
+			ADC_FOSC_64,
+			pcfg,
+			ADC_INT_OFF & ADC_FRM_RJUST);
 		#else
 		#error "Bad Comp"
 		#endif
@@ -124,7 +128,13 @@ uint8_t battery_get(void) {
 	for(;;) {
 		PIE2bits.LVDIE = 0;
 		LVDCONbits.LVDEN = 1;
+#if defined(MCC18)
 		while(!LVDCONbits.IRVST);
+#elif defined(SDCC)
+		while(!LVDCONbits.VRST);
+#else
+#error "bad compiler"
+#endif
 		PIR2bits.LVDIF = 0;
 	
 		tmp = LVDCON & 0xF;
@@ -180,12 +190,13 @@ void loop_2(void) {
 	Putdata(&txdata);
 }
 
-bool new_data_received(void) {
+bool new_data_received(void)
+{
 	return statusflag.b.NEW_SPI_DATA;
 }
 
-
-static bool check_oi(void) {
+static bool check_oi(void)
+{
 	uint8_t i;
 	for(i = 0; i < 16; i++) {
 		if((rxdata.oi_analog[i] > 0xdf)
@@ -196,7 +207,8 @@ static bool check_oi(void) {
 	return false;
 }
 
-state_t mode_get(void) {
+state_t mode_get(void)
+{
 	if (rxdata.rcstatusflag.b.oi_on) {
 		if (mode_s != MODE_TELOP) {
 			if (check_oi()) {
@@ -347,7 +359,8 @@ bool digital_io_get(index_t index) {
 	return false;
 }
 
-void analog_set(index_t index, int8_t sp) {
+void analog_set(index_t index, int8_t sp)
+{
 	if (1 <= index && index <= kVPMaxMotors) {
 		uint8_t val;
 		sp = ( sp < 0 && sp != -128) ? sp - 1 : sp;
@@ -361,9 +374,10 @@ void analog_set(index_t index, int8_t sp) {
 /*
  * INTERRUPTS
  */
-isr_t isr_callbacks[6] = { 0 };
+static isr_t isr_callbacks[6];
 
-void interrupt_reg_isr(index_t index, isr_t isr) {
+void interrupt_reg_isr(index_t index, isr_t isr)
+{
 	if (17 <= index && index <= 22) {
 		isr_callbacks[index - 17] = isr;
 	} else {
@@ -383,7 +397,8 @@ void interrupt_reg_isr(index_t index, isr_t isr) {
  #error "Bad compiler."
 #endif
 
-void interrupt_handler(void) {
+static void interrupt_handler(void)
+{
 	static uint8_t delta, portb_old = 0xFF, portb = 0xFF;
 
 	/* Interrupt 1 */
@@ -437,14 +452,13 @@ void interrupt_handler(void) {
 void interrupt_vector(void) __naked __interrupt 2
 {
 	__asm
-		goto _interrupt_handler
+	goto _interrupt_handler
 	__endasm;
 }
 #elif defined(MCC18)
 #pragma code interrupt_vector=0x818
 void interrupt_vector(void)
 {
-	/* There's not much space for this function... */
 	_asm
 	goto interrupt_handler
 	_endasm
@@ -455,11 +469,12 @@ void interrupt_vector(void)
 #endif
 
 
-/* TODO Implement interrupt_disable(). */
+/* TODO: Implement interrupt_disable(). */
 
-void interrupt_enable(index_t index) {
+void interrupt_enable(index_t index)
+{
 	switch (index) {
-	case 1:
+	case 17:
 		TRISBbits.TRISB2    = 1;
 		INTCON3bits.INT2IP  = 0;
 		INTCON3bits.INT2IF  = 0;
@@ -467,18 +482,22 @@ void interrupt_enable(index_t index) {
 		INTCON3bits.INT2IE  = 1;
 		break;
 	
-	case 2:
+	case 18:
 		TRISBbits.TRISB3    = 1;
+#if defined(MCC18)
 		INTCON2bits.INT3IP  = 0;
+#elif defined(SDCC)
+		INTCON2bits.INT3P   = 0;
+#endif
 		INTCON2bits.INTEDG3 = 1;
 		INTCON3bits.INT3IF  = 0;
 		INTCON3bits.INT3IE  = 1;
 		break;
 	
-	case 3:
-	case 4:
-	case 5:
-	case 6:
+	case 19:
+	case 20:
+	case 21:
+	case 22:
 		TRISBbits.TRISB4 = 1;
 		TRISBbits.TRISB5 = 1;
 		TRISBbits.TRISB6 = 1;
@@ -496,14 +515,15 @@ void interrupt_enable(index_t index) {
 /*
  * STREAM IO
  */
-void _putc(char c) {
-	/* From the Microchip C Library Docs */
-	while(Busy1USART());
-	Write1USART(c);
-}
- 
-/* IFI lib uses this. (IT BURNNNNSSSS) */
-void Wait4TXEmpty(void) {
-	while(Busy1USART());
+
+/* used in ifi_util.asm */
+void usart1_busywait(void)
+{
+	while(usart1_busy());
 }
 
+void _putc(char c)
+{
+	usart1_busywait();
+	usart1_putc(c);
+}
