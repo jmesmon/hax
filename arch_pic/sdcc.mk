@@ -4,6 +4,7 @@ AS = gpasm
 LD = sdcc
 
 SOURCE += $(ARCH)/crt0iz_sdcc.c
+SOURCE += $(ARCH)/spi_open.c
 
 ARCH_CFLAGS = -mpic16 -p18f8520
 ARCH_CFLAGS += -I$(srcdir) -I$(srcdir)/$(ARCH)
@@ -13,6 +14,7 @@ ARCH_CFLAGS += --optimize-cmp
 ARCH_CFLAGS += --optimize-df
 #ARCH_CFLAGS += --pstack-model=large
 
+ARCH_LDFLAGS = -Wl,-s,18f8520user.lkr
 ARCH_ASFLAGS = -p18f8520
 ARCH_LDFLAGS = 
 
@@ -36,5 +38,4 @@ clean :
 
 %.hex : $(OBJECTS)
 	@echo "LD $(@F)"
-	@$(LD) $(ALL_LDFLAGS) $^ $@
-
+	@$(LD) $(ALL_LDFLAGS) -o $@ $^
