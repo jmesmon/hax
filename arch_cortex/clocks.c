@@ -17,6 +17,7 @@ static int rcc_src_hclk;
 static int treg_div;
 static int treg_max;
 
+/* 1 jiffie per 1us */
 static volatile uint64_t jiffies;
 
 #define treg_to_us(treg) ((treg_max - (treg)) / treg_div)
@@ -38,7 +39,10 @@ uint16_t time_get_only_us(void)
 /* this seems like it would be slightly inefficient in some cases */
 uint64_t time_get_us(void)
 {
-	return jiffies_to_us(jiffies) | treg_to_us(SysTick->VAL);
+	uint64_t treg = treg_to_us(SysTick->VAL);
+	uint64_t jiff = jiffies_to_us(jiffies);
+
+	return jiff | treg;
 }
 
 /* acuracy is +- the size of systick's prescaled clock speed with sub us
@@ -46,16 +50,26 @@ uint64_t time_get_us(void)
  *
  * 72 * 1000 * 1000 / 8 / 9 = 1us
  * 64 * 1000 * 1000 / 8 / 8 = 1us */
-void udelay(uint32_t delay) {
-	uint64_t t_us = time_get_us() + delay;
-	while (time_get_us() <= t_us)
-		;
+#include <stdio.h>
+#include <inttypes.h>
+void udelay(uint32_t delay_us)
+{
+	uint64_t t_now = time_get_us();
+	uint64_t t_later = t_now + delay_us;
+	printf("now: %"PRIu32" delay: %"PRIu32" later: %"PRIu32"\n",
+			(uint32_t)t_now, (uint32_t)delay_us, (uint32_t)t_later);
+	while ((t_now = time_get_us()) <= t_later) {
+		printf("now: %"PRIu32" later: %"PRIu32"\n",
+				(uint32_t)t_now, (uint32_t)t_later);
+	}
+
+	puts("AFTER");
 }
 
 __attribute__((interrupt))
 void SysTick_Handler(void)
 {
-	jiffies+=1000;
+	jiffies += 1000;
 }
 
 /**

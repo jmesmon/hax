@@ -1,6 +1,7 @@
 #ifndef CORTEX_CLOCKS_H_
 #define CORTEX_CLOCKS_H_
 
+#include <stdint.h>
 
 uint64_t time_get_ms(void);
 
