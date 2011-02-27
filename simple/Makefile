@@ -1,6 +1,6 @@
 arch     = cortex
-prog     = oeg
+prog     = simple
 serial   = /dev/ttyUSB0
-SOURCE   = user.c main.c
+SOURCE   = main.c
 
 include ../build.mk

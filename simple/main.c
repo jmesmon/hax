@@ -1,13 +1,22 @@
 #include "hax.h"
 #include "compilers.h"
 
-#include "user.h"
+#define map_oi(oi, motor) \
+	motor_set(IX_MOTOR(motor), oi_group_get(IX_OI_GROUP(1, oi)))
+void telop_loop(void) {
+	map_oi(1, 1);
+	map_oi(2, 2);
+	map_oi(3, 3);
+	map_oi(5, 4);
+	map_oi(6, 5);
+
+	printf("LOOP\n");
+}
 
 __noreturn void main(void) {
 	static ctrl_mode_t mode;
 
 	arch_init_1();
-	init();
 	arch_init_2();
 
 	for(;;) {
@@ -19,7 +28,6 @@ __noreturn void main(void) {
 
 			switch (mode) {
 			case MODE_AUTON:
-				auton_loop();
 				break;
 
 			case MODE_TELOP:
@@ -27,7 +35,7 @@ __noreturn void main(void) {
 				break;
 
 			default:
-				disable_loop();
+				break;
 			}
 
 			arch_loop_2();
@@ -35,18 +43,5 @@ __noreturn void main(void) {
 
 		/* Executes as fast as the hardware allows. */
 		arch_spin();
-
-		switch (mode) {
-		case MODE_AUTON:
-			auton_spin();
-			break;
-
-		case MODE_TELOP:
-			telop_spin();
-			break;
-
-		default:
-			disable_spin();
-		}
 	}
 }
