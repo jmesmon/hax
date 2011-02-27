@@ -84,7 +84,7 @@ void arch_init_1(void)
 	 * where x counts the number of DIGITAL ports. In total, there are
 	 * sixteen ports numbered from 0ANA to 15ANA.
 	 */
-	if (NUM_ANALOG_VALID(USER_CT_ANALOG) && USER_CT_ANALOG > 0) {
+#if (NUM_ANALOG_VALID(USER_CT_ANALOG) && USER_CT_ANALOG > 0)
 		/* ADC_FOSC: Based on a baud_115 value of 21, given the formula
 		 * FOSC/(16(X + 1)) in table 18-1 of the PIC18F8520 doc the
 		 * FOSC is 40Mhz.
@@ -92,24 +92,24 @@ void arch_init_1(void)
 		 * ADC Freq needs to be at least 1.6us or 0.625MHz. 40/0.625=64
 		 * (Also, see table 19-1 in the chip doc)
 		 */
-#if defined(MCC18)
+# if defined(MCC18)
 		OpenADC( ADC_FOSC_64 & ADC_RIGHT_JUST &
 		                       ( 0xF0 | (16 - USER_CT_ANALOG) ) ,
 		                       ADC_CH0 & ADC_INT_OFF & ADC_VREFPLUS_VDD &
 				           ADC_VREFMINUS_VSS );
-#elif defined(SDCC)
+# elif defined(SDCC)
 		adc_open(
 			ADC_CHN_0,
 			ADC_FOSC_64,
 			ADC_CFG_16A,
 			ADC_FRM_RJUST | ADC_INT_OFF | ADC_VCFG_VDD_VSS );
+# else
+#  error "Bad Comp"
+# endif
+
 #else
-#error "Bad Comp"
+# error "ADC config broken"
 #endif
-	} else {
-		/* TODO: Handle the error. */
-		puts("ADC is disabled");
-	}
 }
 
 void arch_init_2(void)
