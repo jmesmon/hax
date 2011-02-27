@@ -3,17 +3,20 @@
 
 #define map_oi(oi, motor) \
 	motor_set(IX_MOTOR(motor), oi_group_get(IX_OI_GROUP(1, oi)))
-void telop_loop(void) {
-	map_oi(1, 1);
-	map_oi(2, 2);
-	map_oi(3, 3);
-	map_oi(5, 4);
-	map_oi(6, 5);
+void telop_loop(void)
+{
+	index_t i = IX_OI_GROUP(1, 1);
+	int8_t val = oi_group_get(i);
 
-	printf("LOOP\n");
+	index_t m = IX_MOTOR(1);
+	puts("\tMOTOR");
+	motor_set(m, val);
+
+	puts("\tTELOP");
 }
 
-__noreturn void main(void) {
+__noreturn void main(void)
+{
 	static ctrl_mode_t mode;
 
 	arch_init_1();
@@ -25,20 +28,21 @@ __noreturn void main(void) {
 		/* The "slow loop", executes once every SLOW_US microseconds. */
 		if (do_slow_loop()) {
 			arch_loop_1();
-
+			puts("LOOP");
+			printf("mode: %d\n", mode);
 			switch (mode) {
 			case MODE_AUTON:
 				break;
-
 			case MODE_TELOP:
 				telop_loop();
 				break;
-
 			default:
 				break;
 			}
 
+			puts("DONE1");
 			arch_loop_2();
+			puts("DONE2");
 		}
 
 		/* Executes as fast as the hardware allows. */
