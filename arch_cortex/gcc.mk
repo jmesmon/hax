@@ -27,14 +27,14 @@ ARCH_CFLAGS= -D$(STMPROC) -DHSE_VALUE=$(HSE_VALUE)    \
            -D_SMALL_PRINTF -DNO_FLOATING_POINT        \
 	   -Os -Wextra -DVERSION="\"$(VER)\""     \
 	   -Wno-missing-field-initializers            \
-	   -ggdb -DARCH_CORTEX $(CC_INC) $(CFLAGS)
+	   -ggdb -DARCH_CORTEX $(CC_INC) $(CFLAGS) -MMD
 
 ARCH_LDFLAGS=$(ALL_CFLAGS)                            \
             -nostartfiles                             \
             -Wl,--gc-sections,-Map=$@.map,-cref       \
             -Wl,-u,Reset_Handler                      \
             -fwhole-program -Wl,-static               \
-            $(LD_INC) -T $(LD_SCRIPT)
+            $(LD_INC) -T $(LD_SCRIPT) -MMD
 
 OBJECTS       = $(SOURCE:=.o)
 TRASH        += $(TARGET) $(TARGET:.bin=.elf) \
