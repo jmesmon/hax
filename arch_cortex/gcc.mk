@@ -39,7 +39,7 @@ ARCH_LDFLAGS=$(ALL_CFLAGS)                            \
 OBJ       = $(SRC:=.o)
 TRASH        += $(TARGET) $(TARGET:.bin=.elf) \
 	$(TARGET:.bin=.elf.map) \
-	$(OBJ) $(OBJ:.o.=.d)
+	$(OBJ) $(OBJ:.o=.d)
 
 clean :
 	@echo "CLEAN"
