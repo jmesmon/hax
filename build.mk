@@ -21,7 +21,6 @@ endif
 
 VER:=hax$(shell $(LIBDIR)/get_version)
 
-
 .SUFFIXES:
 .PHONY: all clean build rebuild install
 
@@ -29,7 +28,7 @@ all: build
 
 rebuild: | clean build
 
--include $(SOURCE:=.d)
+-include $(SRC:=.d)
 include $(ARCHDIR)/build.mk
 
 build: $(TARGET)

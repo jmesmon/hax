@@ -36,10 +36,10 @@ ARCH_LDFLAGS=$(ALL_CFLAGS)                            \
             -fwhole-program -Wl,-static               \
             $(LD_INC) -T $(LD_SCRIPT) -MMD
 
-OBJECTS       = $(SOURCE:=.o)
+OBJ       = $(SRC:=.o)
 TRASH        += $(TARGET) $(TARGET:.bin=.elf) \
 	$(TARGET:.bin=.elf.map) \
-	$(OBJECTS) $(OBJECTS:.o.=.d)
+	$(OBJ) $(OBJ:.o.=.d)
 
 clean :
 	@echo "CLEAN"
@@ -53,7 +53,7 @@ clean :
 	@echo "CC $@"
 	@$(CC) $(ALL_CFLAGS) -c -o $@ $<
 
-%.elf: $(OBJECTS)
+%.elf: $(OBJ)
 	@echo "LD $@"
 	@$(LD) $(ALL_LDFLAGS) -o $@ $^
 
