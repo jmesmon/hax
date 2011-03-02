@@ -19,7 +19,7 @@ ifndef prog
 $(error "unnamed program")
 endif
 
-VER:=$(shell $(LIBDIR)/get_version)
+VER:=hax$(shell $(LIBDIR)/get_version)
 
 
 .SUFFIXES:
