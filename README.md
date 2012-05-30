@@ -11,20 +11,20 @@
 	    (http://github.com/jmesmon/mcc18-wrapper) or
           - sdcc.
           - a bootloader communicator ("programmer")
-            + rigel
-            + ifi-picloader
-            + roboctl
-            + ifi loader
+             + rigel
+             + ifi-picloader
+             + roboctl
+             + ifi loader
         * For 'cortex' you will need 
           - compiled for arm-none-eabi (may be possible to use arm-elf)
-            + binutils, 
-            + gcc,
-            + and newlib
+             + binutils, 
+             + gcc,
+             + and newlib
           - a "programmer" / chip flasher:
-            + stm32loader : included in ./arch_cortex/jtag/stm32lodaer.py 
-              (no, it isn`t jtag)
-            + stm32flash http://code.google.com/p/stm32flash/
-            + stm32ld https://github.com/jsnyder/stm32ld
+             + stm32loader : included in ./arch_cortex/jtag/stm32lodaer.py 
+               (no, it isn`t jtag)
+             + stm32flash http://code.google.com/p/stm32flash/
+             + stm32ld https://github.com/jsnyder/stm32ld
 
 2. Look at the 'skel' directory and the (forthcoming) 'test' directory
    to get an idea of how the functions work, etc. Files containing code
