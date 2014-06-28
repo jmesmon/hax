@@ -1,100 +1,106 @@
-/* Sections Definitions */
-
 SECTIONS
 {
-    /* for Cortex devices, the beginning of the startup code is stored in the .isr_vector section, which goes to FLASH */
     .isr_vector :
     {
+        ASSERT(. == 0, ".isr_vector has something before it");
+        __start_isr_vector = .;
+        KEEP(*(.isr_vector))
 	. = ALIGN(4);
-        KEEP(*(.isr_vector))            /* Startup code */
-	. = ALIGN(4);
+        ASSERT(. != __start_isr_vector, "The .isr_vector section is empty");
     } >FLASH
- 
-    /* for some STRx devices, the beginning of the startup code is stored in the .flashtext section, which goes to FLASH */
-    .flashtext :
-    {
-	. = ALIGN(4);
-        *(.flashtext)            /* Startup code */
-	. = ALIGN(4);
-    } >FLASH
- 
-    
-    /* the program code is stored in the .text section, which goes to Flash */
+
     .text :
     {
-	    . = ALIGN(4);
-	    
-        *(.text)                   /* remaining code */
-        *(.text.*)                   /* remaining code */
-        *(.rodata)                 /* read-only data (constants) */
+        . = ALIGN(4);
+        *(.text)
+        *(.text.*)
+        *(.rodata)
         *(.rodata*)
         *(.glue_7)
         *(.glue_7t)
-
-	    . = ALIGN(4);
-   	 _etext = .;
-	    /* This is used by the startup in order to initialize the .data secion */
-   	 _sidata = _etext;
+	. = ALIGN(4);
     } >FLASH
-    
- 
 
-    /* This is the initialized data section
-    The program executes knowing that the data is in the RAM
-    but the loader puts the initial values in the FLASH (inidata).
-    It is one task of the startup to copy the initial values from FLASH to RAM. */
+    /* generated for unwinding, and by gcc when doing 64bit
+     * math :( */
+    .ARM.extab : /* exception unwinding information */
+    {
+        *(.ARM.extab*)
+    } >FLASH
+    .ARM.exidx : /* index entries for section unwinding */
+    {
+        *(.ARM.exidx*)
+    } >FLASH
+
+    /* C++ init support */
+    .preinit_array :
+    {
+        PROVIDE_HIDDEN(__preinit_array_start = .);
+        KEEP(*(.preinit_array*))
+        PROVIDE_HIDDEN(__preinit_array_end = .);
+    } >FLASH
+    .init_array :
+    {
+        PROVIDE_HIDDEN(__init_array_start = .);
+        KEEP(*(SORT(.init_array.*)))
+        KEEP(*(.init_array*))
+        PROVIDE_HIDDEN(__init_array_end = .);
+    } >FLASH
+    .fini_array :
+    {
+        PROVIDE_HIDDEN(__fini_array_start = .);
+        KEEP(*(SORT(.fini_array.*)))
+        KEEP(*(.fini_array*))
+        PROVIDE_HIDDEN(__fini_array_end = .);
+    } >FLASH
+
+    _sidata = .;
     .data  : AT ( _sidata )
     {
-	    . = ALIGN(4);
-        /* This is used by the startup in order to initialize the .data secion */
+	. = ALIGN(4);
         _sdata = . ;
-        
         *(.data)
         *(.data.*)
         *(.RAMtext)
 
-	    . = ALIGN(4);
-	    /* This is used by the startup in order to initialize the .data secion */
-   	 _edata = . ;
+        . = ALIGN(4);
+        _edata = . ;
     } >RAM
-    
-    
 
     /* This is the uninitialized data section */
     .bss :
     {
-	    . = ALIGN(4);
-        /* This is used by the startup in order to initialize the .bss secion */
+        . = ALIGN(4);
         _sbss = .;
-        
+
         *(.bss)
         *(COMMON)
-        
-	    . = ALIGN(4);
-	    /* This is used by the startup in order to initialize the .bss secion */
-   	 _ebss = . ;
+
+        . = ALIGN(4);
+        _ebss = . ;
     } >RAM
-    
+
     PROVIDE ( end = _ebss );
     PROVIDE ( _end = _ebss );
-    
+
     /* This is the user stack section 
     This is just to check that there is enough RAM left for the User mode stack
     It should generate an error if it's full.
      */
-    ._usrstack :
+    ._heap :
     {
-	    . = ALIGN(4);
-        _susrstack = . ;
-        
-        . = . + _Minimum_Stack_Size ;
-        
-	    . = ALIGN(4);
-        _eusrstack = . ;
+        . = ALIGN(4);
+        . = . + _heap_size;
+        . = ALIGN(4);
     } >RAM
-    
+    ._stack :
+    {
+        . = ALIGN(4);
+        . = . + _stack_size;
+        . = ALIGN(4);
+    } >RAM
 
-   
+
     /* this is the FLASH Bank1 */
     /* the C or assembly source must explicitly place the code or data there
     using the "section" attribute */
@@ -104,11 +110,11 @@ SECTIONS
         *(.b1rodata)                 /* read-only data (constants) */
         *(.b1rodata*)
     } >FLASHB1
-    
+
     /* this is the EXTMEM */
     /* the C or assembly source must explicitly place the code or data there
     using the "section" attribute */
-    
+
     /* EXTMEM Bank0 */
     .eb0text :
     {
@@ -141,6 +147,7 @@ SECTIONS
         *(.eb3rodata*)
     } >EXTMEMB3
     
+
     __exidx_start = .;
     __exidx_end = .;
     

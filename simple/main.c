@@ -3,7 +3,7 @@
 
 #define map_oi(oi, motor) \
 	motor_set(IX_MOTOR(motor), oi_group_get(IX_OI_GROUP(1, oi)))
-void telop_loop(void)
+static void telop_loop(void)
 {
 	index_t i = IX_OI_GROUP(1, 1);
 	int8_t val = oi_group_get(i);

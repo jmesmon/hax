@@ -24,6 +24,7 @@ ARCH_CFLAGS= -D$(STMPROC) -DHSE_VALUE=$(HSE_VALUE)    \
            -mthumb -mcpu=cortex-m3 -Wall              \
            -Wno-main -DUSE_STDPERIPH_DRIVER -pipe     \
            -ffunction-sections -fno-unwind-tables     \
+	   -fno-exceptions	\
            -D_SMALL_PRINTF -DNO_FLOATING_POINT        \
 	   -Os -Wextra -DVERSION="\"$(VER)\""     \
 	   -Wno-missing-field-initializers            \
@@ -33,7 +34,9 @@ ARCH_LDFLAGS=$(ALL_CFLAGS)                            \
             -nostartfiles                             \
             -Wl,--gc-sections,-Map=$@.map,-cref       \
             -Wl,-u,Reset_Handler                      \
-            -fwhole-program -Wl,-static               \
+            -Wl,-static              			\
+	    -fno-exceptions \
+	    -fwhole-program -fno-unwind-tables		\
             $(LD_INC) -T $(LD_SCRIPT) -MMD
 
 OBJ       = $(SRC:=.o)
@@ -41,39 +44,44 @@ TRASH        += $(TARGET) $(TARGET:.bin=.elf) \
 	$(TARGET:.bin=.elf.map) \
 	$(OBJ) $(OBJ:.o=.d)
 
+ifeq ($(V),)
+	AT=@
+endif
+
+
 clean :
 	@echo "CLEAN"
-	@$(RM) $(TRASH)
+	$(AT)$(RM) $(TRASH)
 
 %.s.o: %.s $(HEADER)
 	@echo "AS $@"
-	@$(AS) $(ALL_ASFLAGS) -c -o $@ $<
+	$(AT)$(AS) $(ALL_ASFLAGS) -c -o $@ $<
 
 %.c.o: %.c $(HEADER)
 	@echo "CC $@"
-	@$(CC) $(ALL_CFLAGS) -c -o $@ $<
+	$(AT)$(CC) $(ALL_CFLAGS) -c -o $@ $<
 
 %.elf: $(OBJ)
 	@echo "LD $@"
-	@$(LD) $(ALL_LDFLAGS) -o $@ $^
+	$(AT)$(LD) $(ALL_LDFLAGS) -o $@ $^
 
 %.hex: %.elf
 	@echo "HEX $@"
-	@$(OBJCOPY) -S -O ihex $< $@
+	$(AT)$(OBJCOPY) -S -O ihex $< $@
 
 %.bin: %.elf
 	@echo "BIN $@"
-	@$(OBJCOPY) -S -O binary $< $@
+	$(AT)$(OBJCOPY) -S -O binary $< $@
 
 # Create extended listing file from ELF output file.
 %.elf.lss: %.elf
 	@echo "LSS $@"
-	@$(OBJDUMP) -h -S $< > $@
+	$(AT)$(OBJDUMP) -h -S $< > $@
 
 # Create a symbol table from ELF output file.
 %.elf.sym: %.elf
 	@echo "SYM $@"
-	@$(NM) -n $< > $@
+	$(AT)$(NM) -n $< > $@
 
 .PHONY: clean rebuild depend
 .SECONDARY: 

@@ -1,9 +1,10 @@
 /* Default stack sizes. */
 
 /* These are used by the startup in order to allocate stacks for the different modes. */
-__Stack_Size = 1024 ;
-PROVIDE ( _Stack_Size = __Stack_Size ) ;
-__Stack_Init = _estack  - __Stack_Size ;
+_stack_size = 1024;
+_heap_size  = 1024;
+PROVIDE(_Stack_Size = _stack_size ) ;
+__Stack_Init = _estack  - _Stack_Size ;
 
 
 /* "PROVIDE" allows to easily override these values from an object file or the commmand line. */
